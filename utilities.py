@@ -171,13 +171,35 @@ def percentile(temp_matrix, year, p_val):
     return percentile_each_wod
 
 
+def percentile_d(temp_matrix, year, p_val):
+    percentile_each_day = np.array([])
+
+    years = window_years_int(year)
+   
+    for i in range(0, 365):
+        temp_wod=np.array([])
+        # nel caso voglia la finestra di tutti i giorni(cambia i*20 con i)
+        # for i in range(0, 365):
+        # divido in 18 finestre di 20 giorni
+        # fare la finestra finale di 5 giorni (sfrutta window days)
+
+        for j in range(0, len(years)):
+           # ogni giorni risente della media dei 10 giorni prima e dopo
+            temps = window_days(temp_matrix, years[j], i)
+            
+            temp_wod = np.append(temp_wod, temps)
+            
+        perc = np.percentile(temp_wod, p_val)
+        percentile_each_day = np.append(percentile_each_day, perc)
+            
+    return percentile_each_day
+
+
 def mean_temp(temp_matrix, year):
     mean_each_year = np.array([])
     years = window_years_int(year)
     size = len(years)
-    j = 0
     for j in range(0, size):
-        i = 0
         # divido in 18 finestre di 20 giorni e 1 da 5
         for i in range(0, 19):
            # ogni giorni risente della media dei 10 giorni prima e dopo
@@ -195,6 +217,21 @@ def mean_temp(temp_matrix, year):
     mean_each_year = np.reshape(mean_each_year, (len(years), 19))
 
     return mean_each_year
+
+def mean_temp_day(temp_matrix, year,day):
+    if year>72 or year<0:
+        raise Exception("year is out of range") 
+    if day>365 or day <0:
+        raise Exception("day is out of range") 
+    temps_each_year = np.array([])
+    years = window_years_int(year)
+    for j in range(0, len(years)):
+        temp = window_days(temp_matrix, years[j], day)
+        temps_each_year=np.append(temps_each_year,temp)
+        
+    mean = np.mean(temps_each_year)
+
+    return mean
 
 
 def mean_temp_wod(temp_matrix, year, wod):
