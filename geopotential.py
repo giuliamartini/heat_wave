@@ -14,11 +14,6 @@ dates=cftime.num2pydate(time[:], time.units, calendar='standard')
 dates = pd.to_datetime(dates)
 dates=np.array(list(map(lambda x: x.date(), dates)))
 #z=np.array(ds.variables['z'][:,:,:]) #z(time,lat,lon)
-
-#print(geo[0][0][0])
-#res=np.reshape(geop[0],(len(lat),len(lon)))
-#print(res)
-
 def strtodate(day_str):
     result= datetime.strptime(day_str, '%Y-%m-%d').date()
     return pd.to_datetime(result)
@@ -49,8 +44,6 @@ def distance(event_map1,event_map2):
     r=r(event_map1,event_map2)
     return (1-r)
 
-#print(r(np.array(ds.variables['z'][0,:,:]),np.array(ds.variables['z'][1,:,:])))
-
 def window_days_int(year,day):
     if (year*90+day)>=440:
         return np.arange(year*90+day-10,450,1)
@@ -72,7 +65,6 @@ def day_mean(days, ds):
     cluster_map=np.array(cluster_map)
     mean=np.mean(cluster_map, axis=0) 
     return mean
-
 
 years=np.array([0,1,2,3,4])
 days=wdy_int(years,7)
