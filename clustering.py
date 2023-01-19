@@ -2,7 +2,7 @@ import netCDF4 as nc
 import numpy as np
 import pandas as pd
 import cftime
-from geop import strtodate,get_hw_days, distance, get_anomalies_map,HeatWave
+from geopotential import strtodate,get_hw_days, distance, get_anomalies_map,HeatWave
 
 fn = '/home/giulia/geopotential_mean_no29feb.nc'
 ds = nc.Dataset(fn, 'r')
