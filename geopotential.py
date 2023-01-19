@@ -108,11 +108,17 @@ class HeatWave:
         self.duration = duration
         self.geop_map = geop_map
 
+    def merge(self,other):
+        self.geop_map=np.mean(np.array([self.geop_map,other.geop_map]),axis=0)
+        self.first_day.append(other.first_day)
+        self.duration.append(other.duration)
+        return self
+
 
 # sulle righe=long
 
-cluster_heat_waves=[]
-cluster_heat_waves_anomalies=[]
+cluster_heat_waves=np.array([])
+cluster_heat_waves_anomalies=np.array([])
 
 for i in range(0, 2):
     df = pd.read_csv('/home/giulia/tesipy/properties_'+str(i+2017)+'.csv')
@@ -143,11 +149,34 @@ for i in range(0, 2):
         anomalies_mean = np.mean(anomalies_maps_hw_np,axis=0)
         cluster_anomalies_means_y.append(anomalies_mean) 
 
-        heat_wave_anomal=HeatWave(first_day[h],duration[h],anomalies_mean) #se considero le anomalie nella mappa
-        heat_wave=HeatWave(first_day[h],duration[h],mean_geop)  #se considero geopotenziale medio
+        heat_wave_anomal=HeatWave([first_day[h]],[duration[h]],anomalies_mean) #se considero le anomalie nella mappa
+        heat_wave=HeatWave([first_day[h]],[duration[h]],mean_geop)  #se considero geopotenziale medio
         
-        cluster_heat_waves.append(heat_wave)
-        cluster_heat_waves_anomalies.append(heat_wave_anomal)
+        cluster_heat_waves=np.append(cluster_heat_waves,heat_wave)
+        cluster_heat_waves_anomalies=np.append(cluster_heat_waves_anomalies,heat_wave_anomal)
+
+
+
+matrix_distances=np.array([])
+for i in range(0,len(cluster_heat_waves)):
+    states=map(lambda x: x.geop_map, cluster_heat_waves)
+    distance_each_hw=[ distance(cluster_heat_waves[i].geop_map,x) for x in states]
+    matrix_distances=np.append(matrix_distances,distance_each_hw)
+    
+matrix_distances=np.reshape(matrix_distances,(len(cluster_heat_waves),len(cluster_heat_waves)))
+np.fill_diagonal(matrix_distances,0)# d<1 sempre
+d_min=np.min(matrix_distances[np.nonzero(matrix_distances)])
+positions=np.where(matrix_distances==d_min)
+
+merged_hw=cluster_heat_waves[positions[0][0]].merge(cluster_heat_waves[positions[0][1]])
+
+cluster_heat_waves=np.delete(cluster_heat_waves,(positions[0][0],positions[0][1]))
+cluster_heat_waves=np.append(cluster_heat_waves,merged_hw)
+
+
+
+
+
 
 
 
