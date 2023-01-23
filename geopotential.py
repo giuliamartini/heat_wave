@@ -56,7 +56,7 @@ def wdy_int(years, day):
 
 
 def day_mean(day_, year, ds):
-    days = wdy_int(woy_int(year), day_)
+    days = wdy_int(woy_int(year), day_%90)
     cluster_map = []
     for day in days:
         cluster_map.append(np.array(ds.variables['z'][day, :, :]))
@@ -65,7 +65,7 @@ def day_mean(day_, year, ds):
     return mean
 
 def day_percentile(day_, year, ds, p_value):
-    days = wdy_int(woy_int(year), day_)
+    days = wdy_int(woy_int(year), day_%90)
     cluster_map = []
     for day in days:
         cluster_map.append(np.array(ds.variables['z'][day, :, :]))
@@ -100,6 +100,23 @@ class HeatWave:
         self.duration.append(other.duration)
         return self
 
+def maxim_distance(cluster1,cluster2):
+    arr_dist=np.array([])
+    for x in cluster1:
+        for y in cluster2:
+            arr_dist=np.append(arr_dist,distance(x.geop_map,y.geop_map) ) 
+    maximum=np.max(arr_dist)
+    return maximum
+
+def min_distance(cluster1,cluster2):
+    arr_dist=np.array([])
+    for x in cluster1:
+        for y in cluster2:
+            arr_dist=np.append(arr_dist,distance(x.geop_map,y.geop_map) ) 
+    minimum=np.min(arr_dist)
+    return minimum
+
+ 
 
 # sulle righe=long
 
