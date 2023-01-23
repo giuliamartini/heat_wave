@@ -57,7 +57,7 @@ for i in range(0, 60):
     for h in range(0,len(heat_waves_days)):
         anomalies_maps_hw = []
         for d in heat_waves_days[h]:              
-            anomalies_maps_hw.append(get_anomalies_map(dates,ds, d, i))  
+            anomalies_maps_hw.append(np.divide(get_anomalies_map(dates,ds, d, i),9.80665) ) #divido per g dato da ECMWF
         anomalies_maps_hw_np = np.array(anomalies_maps_hw)
         anomalies_mean = np.mean(anomalies_maps_hw_np,axis=0)
         cluster_anomalies_means_y.append(anomalies_mean) 
@@ -65,12 +65,8 @@ for i in range(0, 60):
         cluster_heat_waves_anomalies.append(heat_wave_anomal)
 
 
-while len(cluster_heat_waves_anomalies)>6:
+while len(cluster_heat_waves_anomalies)>7:
     cluster_heat_waves_anomalies=algorithm(cluster_heat_waves_anomalies)
-
-
-
-        
 
 
 ##numero opportuno di cluster
@@ -95,28 +91,25 @@ while len(cluster_check)>=2:
 delta_d=np.array([])
 for i in range(0,len(d)-1):
     delta_d=np.append(delta_d,d[i+1]-d[i])
-print(delta_d)
 max_delta_d=np.max(delta_d)
 n=int(np.where(delta_d==max_delta_d)[0])
 
-i=5-n #5 e non 6 perchè i np.array partono da 0
-for i in range(5-n,6):
+i=6-n #5 e non 6 perchè i np.array partono da 0
+for i in range(6-n,7):
     cluster_heat_waves_anomalies=algorithm(cluster_heat_waves_anomalies)
 
 
-for j in range(0,len(cluster_heat_waves)):
+for j in range(0,len(cluster_heat_waves_anomalies)):
     with open("cluster_geop_fd"+str(j)+".csv", "w") as stream:
         writer = csv.writer(stream)
         writer.writerow(['firstday'])
-        for hw in cluster_heat_waves[j]:    
-            
+        for hw in cluster_heat_waves_anomalies[j]:      
             writer.writerow(hw.first_day)
         stream.close()
     with open("cluster_geop_dur"+str(j)+".csv", "w") as stream:
         writer = csv.writer(stream)
         writer.writerow(['duration'])
-        for hw in cluster_heat_waves[j]:    
-            
+        for hw in cluster_heat_waves_anomalies[j]:        
             writer.writerow(hw.duration)
         stream.close()
 
