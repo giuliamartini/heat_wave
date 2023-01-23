@@ -2,29 +2,41 @@ import netCDF4 as nc
 import numpy as np
 import pandas as pd
 import cftime
-from geop import strtodate ,get_hw_days,  get_anomalies_map, day_mean
-
-
-
-import numpy as np
+from geop import strtodate ,get_hw_days,  get_anomalies_map
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 #from numba import jit
+
+
+def corr_plot_lines(lon, lat, var, title):
+    """Plot correlations
+    """
+    fig = plt.figure(figsize=[12,5])
+    ax = fig.add_subplot(111, projection=ccrs.NorthPolarStereo())
+    #cf = ax.contourf(lon,lat,var,levels=levels,cmap='bwr',transform=ccrs.PlateCarree(),extend='both')
+    cs = ax.contour(lon, lat, var, np.arange(-240,360,80), colors='black',transform=ccrs.PlateCarree())
+    plt.clabel(cs, fmt='%d')
+    ax.coastlines()
+    ax.set_extent([-180, 180, 90, 60], crs=ccrs.PlateCarree(central_longitude=0))
+    #cbar = plt.colorbar(cf,ax=ax)
+    #cbar.set_label('ACC')
+    ax.set_title(title, fontsize=20)
+    plt.show()
 
 def corr_plot(lon, lat, var, title, levels=None):
     """Plot correlations
     """
     fig = plt.figure(figsize=[12,5])
     ax = fig.add_subplot(111, projection=ccrs.NorthPolarStereo())
- 
-    cf = ax.contourf(lon,lat,var,levels=levels,cmap='bwr',transform=ccrs.NorthPolarStereo(),extend='both')
- 
+    cf = ax.contourf(lon,lat,var,levels=levels,cmap='bwr',transform=ccrs.PlateCarree(),extend='both')
     ax.coastlines()
-    ax.set_extent([-180, 180, 90, 60], crs=ccrs.NorthPolarStereo())
+    ax.set_extent([-180, 180, 90, 60], crs=ccrs.PlateCarree(central_longitude=0))
     cbar = plt.colorbar(cf,ax=ax)
     cbar.set_label('ACC')
     ax.set_title(title, fontsize=20)
     plt.show()
+
+   
 
 fn = '/home/giulia/geopotential_no29feb_f.nc'
 ds = nc.Dataset(fn)
@@ -60,8 +72,11 @@ for i in range(0,2):
          anomalies_maps_hw.append(get_anomalies_map(dates,ds,d,int(d/90)))  
    anomalies_maps_hw_np = np.array(anomalies_maps_hw)
    anomalies_mean = np.mean(anomalies_maps_hw_np,axis=0)
-   plot=corr_plot(lon,lat,anomalies_mean,title='mappa di anomalia di altezza geopotenziale 500hPa cluster: '+str(i))
-   
+   corr_plot(lon,lat,anomalies_mean,title='mappa di anomalia di altezza geopotenziale 500hPa cluster: '+str(i))
+   level=np.arange(-240,380,80)
+   corr_plot_lines(lon,lat,anomalies_mean,title='mappa di anomalia di altezza geopotenziale 500hPa cluster: '+str(i),levels=np.delete(level,np.where(level==0)))
 
+
+        
 
         
