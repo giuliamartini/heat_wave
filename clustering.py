@@ -2,10 +2,34 @@ import netCDF4 as nc
 import numpy as np
 import pandas as pd
 import cftime
-from geopotential import strtodate,get_hw_days, distance, get_anomalies_map,HeatWave
+import csv
+from datetime import datetime
+import datetime as dt
+from geop import strtodate,get_hw_days, maxim_distance, get_anomalies_map,min_distance,HeatWave
 
-fn = '/home/giulia/geopotential_mean_no29feb.nc'
-ds = nc.Dataset(fn, 'r')
+
+def algorithm(cluster_heat_waves):
+
+    matrix_distances=np.array([])
+    for i in range(0,len(cluster_heat_waves)):
+        for hw in cluster_heat_waves:
+            distance_each_hw=[ maxim_distance(cluster_heat_waves[i],hw)]
+            matrix_distances=np.append(matrix_distances,distance_each_hw)
+
+    matrix_distances=np.reshape(matrix_distances,(len(cluster_heat_waves),len(cluster_heat_waves)))
+    np.fill_diagonal(matrix_distances,0)
+    d_min=np.min(matrix_distances[np.nonzero(matrix_distances)])
+    positions=np.where(matrix_distances==d_min)
+
+    cluster_heat_waves[positions[0][0]].extend(cluster_heat_waves[positions[0][1]])
+
+    cluster_heat_waves.remove(cluster_heat_waves[positions[0][1]])
+    
+    return cluster_heat_waves
+
+
+fn = '/home/giulia/geopotential_no29feb_f.nc'
+ds = nc.Dataset(fn)
 lat = ds.variables['latitude']
 lat = np.array(lat[:])
 lon = np.array(ds.variables['longitude'][:])
@@ -13,14 +37,14 @@ time = ds.variables['time']
 dates = cftime.num2pydate(time[:], time.units, calendar='standard')
 dates = pd.to_datetime(dates)
 dates = np.array(list(map(lambda x: x.date(), dates)))
+index=np.arange(0,14,1)
+dates=np.delete(dates,index)
 
+cluster_heat_waves=[]
+cluster_heat_waves_anomalies=[]
 
-
-cluster_heat_waves=np.array([])
-cluster_heat_waves_anomalies=np.array([])
-
-for i in range(0, 2):
-    df = pd.read_csv('/home/giulia/tesipy/properties_'+str(i+2017)+'.csv')
+for i in range(0, 60):
+    df = pd.read_csv('/home/giulia/tesipy/properties_'+str(i+1959)+'.csv')
     first_day = np.array(df['firstday'])
     first_day = np.array(list(map(strtodate, first_day)))
     first_day = np.array(list(map(lambda x: x.date(), first_day)))
@@ -29,51 +53,71 @@ for i in range(0, 2):
     cluster_rs_hw = []
 
 
-    cluster_means_y = []
     cluster_anomalies_means_y = []
-
     for h in range(0,len(heat_waves_days)):
-        geop_maps_hw=[]
         anomalies_maps_hw = []
-        for d in heat_waves_days[h]:
-            
-            geop_maps_hw.append(ds.variables['z'][d,:,:])               
-            anomalies_maps_hw.append(get_anomalies_map(ds, d, i))
-
-         
-        geop_maps_hw_np=np.array(geop_maps_hw)  
-        mean_geop=np.mean(geop_maps_hw_np,axis=0)    
-        cluster_means_y.append(mean_geop)
+        for d in heat_waves_days[h]:              
+            anomalies_maps_hw.append(get_anomalies_map(dates,ds, d, i))  
         anomalies_maps_hw_np = np.array(anomalies_maps_hw)
         anomalies_mean = np.mean(anomalies_maps_hw_np,axis=0)
         cluster_anomalies_means_y.append(anomalies_mean) 
+        heat_wave_anomal=[HeatWave([first_day[h]],[duration[h]],anomalies_mean)] #se considero le anomalie nella mappa
+        cluster_heat_waves_anomalies.append(heat_wave_anomal)
 
-        heat_wave_anomal=HeatWave([first_day[h]],[duration[h]],anomalies_mean) #se considero le anomalie nella mappa
-        heat_wave=HeatWave([first_day[h]],[duration[h]],mean_geop)  #se considero geopotenziale medio
+
+while len(cluster_heat_waves_anomalies)>6:
+    cluster_heat_waves_anomalies=algorithm(cluster_heat_waves_anomalies)
+
+
+
         
-        cluster_heat_waves=np.append(cluster_heat_waves,heat_wave)
-        cluster_heat_waves_anomalies=np.append(cluster_heat_waves_anomalies,heat_wave_anomal)
 
 
+##numero opportuno di cluster
+cluster_check=cluster_heat_waves_anomalies.copy()
+d=np.array([])
 
-matrix_distances=np.array([])
-for i in range(0,len(cluster_heat_waves)):
-    states=map(lambda x: x.geop_map, cluster_heat_waves)
-    distance_each_hw=[ distance(cluster_heat_waves[i].geop_map,x) for x in states]
-    matrix_distances=np.append(matrix_distances,distance_each_hw)
-    
-matrix_distances=np.reshape(matrix_distances,(len(cluster_heat_waves),len(cluster_heat_waves)))
-np.fill_diagonal(matrix_distances,0)
-d_min=np.min(matrix_distances[np.nonzero(matrix_distances)])
-positions=np.where(matrix_distances==d_min)
+while len(cluster_check)>=2:
+    dist=np.array([])
+    for i in range(0,len(cluster_check)):
+        
+        for j in range(0,len(cluster_check)):
+            if(j==i):
+                dist=np.append(dist,10) #modo rapido e brutto per non considerare interazioni con se stesso ma da eliminare
+            else:
+                distance_each_hw=[ maxim_distance(cluster_check[i],cluster_check[j])]
+                dist=np.append(dist,distance_each_hw)
+    min=np.min(dist[np.nonzero(dist)]) 
+    d=np.append(d,min)
+    cluster_check=algorithm(cluster_check)
 
-merged_hw=cluster_heat_waves[positions[0][0]].merge(cluster_heat_waves[positions[0][1]])
 
-cluster_heat_waves=np.delete(cluster_heat_waves,(positions[0][0],positions[0][1]))
-cluster_heat_waves=np.append(cluster_heat_waves,merged_hw)
+delta_d=np.array([])
+for i in range(0,len(d)-1):
+    delta_d=np.append(delta_d,d[i+1]-d[i])
+print(delta_d)
+max_delta_d=np.max(delta_d)
+n=int(np.where(delta_d==max_delta_d)[0])
 
-print(len(cluster_heat_waves))
-print(matrix_distances)
-print(merged_hw.geop_map)
+i=5-n #5 e non 6 perchè i np.array partono da 0
+for i in range(5-n,6):
+    cluster_heat_waves_anomalies=algorithm(cluster_heat_waves_anomalies)
+
+
+for j in range(0,len(cluster_heat_waves)):
+    with open("cluster_geop_fd"+str(j)+".csv", "w") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(['firstday'])
+        for hw in cluster_heat_waves[j]:    
+            
+            writer.writerow(hw.first_day)
+        stream.close()
+    with open("cluster_geop_dur"+str(j)+".csv", "w") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(['duration'])
+        for hw in cluster_heat_waves[j]:    
+            
+            writer.writerow(hw.duration)
+        stream.close()
 
 
