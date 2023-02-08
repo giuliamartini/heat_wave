@@ -116,10 +116,6 @@ while len(cluster_heat_waves_anomalies)>3:
 #max_delta_d=np.max(delta_d)
 #n=int(np.where(delta_d==max_delta_d)[0])
 #5 e non 6 perchè i np.array partono da 0
-for i in range(0,3):
-    cluster_heat_waves_anomalies=algorithm(cluster_heat_waves_anomalies)
-
-
 
 
 for j in range(0,len(cluster_heat_waves_anomalies)):
