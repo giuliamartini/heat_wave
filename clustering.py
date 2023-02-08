@@ -3,9 +3,7 @@ import numpy as np
 import pandas as pd
 import cftime
 import csv
-#from datetime import datetime
-#import datetime as dt
-from geop import strtodate,get_hw_days, maxim_distance, get_anomalies_map,min_distance,HeatWave
+from geopotential import strtodate,get_hw_days, maxim_distance, get_anomalies_map,min_distance,HeatWave
 
 
 def algorithm(cluster_heat_waves):
