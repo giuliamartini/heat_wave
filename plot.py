@@ -2,7 +2,7 @@ import netCDF4 as nc
 import numpy as np
 import pandas as pd
 import cftime
-from geop import strtodate, get_hw_days,  get_anomalies_map, get_anomalies_temp_map
+from geopotential import strtodate, get_hw_days,  get_anomalies_map, get_anomalies_temp_map
 import matplotlib.pyplot as plt
 import matplotlib.path as mpath
 import cartopy.crs as ccrs
