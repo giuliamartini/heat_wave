@@ -10,10 +10,7 @@ import csv
 
 from utilities  import  mean_temp_day,percentile_d
 
-#from utils import mean_temp_wod, mean_temp_day, remove_leap_years, window_years, percentile_d, get_wod
 
-#fn = '/home/giulia/Documents/Documenti/Tesi/pc_TAS_daymean.nc'
-#fn='/home/giulia/Documents/Documenti/Tesi/pc_TAS_daymean_no29feb.nc'
 fn='/home/giulia/Documents/Documenti/Tesi/pc_TAS_daymean.nc'
 ds = nc.Dataset(fn)
 time = ds.variables['time']
@@ -196,65 +193,7 @@ for k in range(9,70):
     prop = get_properties(date_matrix, temp_matrix, hw)
     properties_csv(prop)
 print(np.sum(w))
-#warm_days=np.array([])
-#number_event=np.array([])
-#number_days=np.array([])
-#min=np.array([])
-#year=np.array([])
 
-#woy = warm_days_wod_y(temp_matrix, 70,0,365)
-#hw = get_heat_waves_date(woy, date_matrix)
-#print(hw)
-#means=np.array([])
-#perc=percentile_d(temp_matrix,70,95)
-#for i in range(0, len(temp_matrix[70])):
-#    means=np.append(means,mean_temp_day(temp_matrix,70,i))
-#
-#print(len(perc))
-#print(len(means))
-#
-#
-#plt.scatter(date_matrix[70],temp_matrix[70],c='tab:blue',s=10,marker ='o')
-#plt.plot(date_matrix[70],means,c='tab:orange')
-#plt.plot(date_matrix[70],perc,c='tab:green')
-#for h in hw:
-#    for i in range(0,len(h)):
-#        plt.scatter(date_matrix[70][int(h[i][1])],temp_matrix[70][int(h[i][1])],c='r',s=10,marker='o')
-#plt.legend(['T ','media ','95° percentile','heatwaves'])
-#plt.xlabel('Date ')
-#plt.ylabel('Temperatura media giornaliera [K]')
-#plt.show()
-#
-#for k in range(9,71):
-#    woy = warm_days_wod_y(temp_matrix, k,0,365)
-#    hw = get_heat_waves_date(woy, date_matrix)
-#    #min=np.append(min,np.min(temp_matrix[k]))
-#    year=np.append(year,k+1950)
-#    #max=np.max(temp_matrix[k])
-    
-#a, b = np.polyfit(year, min, 1)
-#plt.scatter(year,min,c='tab:orange',s=20)
-#plt.plot(year, a*year+b)
-#plt.legend('TF')
-#plt.bar_label('slope='+str(a))
-#plt.xlabel('Anno')
-#plt.ylabel('Temperatura minima annua [K]')
-#plt.show()
-
-    #plt.scatter(k+1950,max,c='tab:orange',s=20)
-    #number_event=np.append(number_event,len(hw))
-    #for h in hw:
-    #    number_days=np.append(number_days,len(h))
-    
-    #prop = get_properties(date_matrix, temp_matrix, hw)
-    #properties_csv(prop)
-#plt.show()
-#ev=np.sum(number_event)
-#day=np.sum(number_days)
-#print(ev)
-#print(day)
-#print(len(warm_days))
-#print(np.sum(warm_days))
 
 
 
