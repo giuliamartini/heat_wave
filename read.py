@@ -14,7 +14,7 @@ from utilities  import  mean_temp_day,percentile_d
 
 #fn = '/home/giulia/Documents/Documenti/Tesi/pc_TAS_daymean.nc'
 #fn='/home/giulia/Documents/Documenti/Tesi/pc_TAS_daymean_no29feb.nc'
-fn='/home/giulia/t2m_alldaymean.nc'
+fn='/home/giulia/Documents/Documenti/Tesi/pc_TAS_daymean.nc'
 ds = nc.Dataset(fn)
 time = ds.variables['time']
 temp = np.array(ds.variables['t2m'][:])
@@ -26,6 +26,7 @@ dates = pd.to_datetime(dates)
 dates = np.array(list(map(lambda x: x.date(), dates)))
 months = np.array(list(map(lambda x: x.month, dates)))
 days = np.array(list(map(lambda x: x.day, dates)))
+
 leap=[]
 for i in range(0,len(months)):
     if months[i]==2 and days[i]==29:
@@ -33,8 +34,9 @@ for i in range(0,len(months)):
 
 dates=np.delete(dates,leap)    
 temp=np.delete(temp,leap) 
-
-
+index=np.arange(len(dates)-52,len(dates))
+dates=np.delete(dates,index)
+temp=np.delete(temp,index)
 def warm_days_wod_y(temp_matrix, year, day_begin, day_end):
    
     if day_begin < 0 or day_begin > 365:
@@ -172,7 +174,7 @@ def get_properties(date_matrix, temp_matrix, heat_waves):
 
 def properties_csv(prop):    
     
-    with open("JFM_90pct_"+str(1959+k)+".csv", "w") as stream:
+    with open("JFM_90pct_"+str(1950+k)+".csv", "w") as stream:
         #writer = csv.DictWriter(stream, delimiter=',',fieldnames=headerList)     
         writer = csv.writer(stream)
         writer.writerow(['firstday','Tmax','duration','magnitudo','intensity'])
@@ -187,10 +189,73 @@ temp_matrix = np.reshape(temp, (int(len(temp)/365), 365))
 cluster_intensities=np.array([])
 cluster_duration=np.array([])
 w=np.array([])
-for k in range(0,61):
+for k in range(9,70):
     woy = warm_days_wod_y(temp_matrix, k,0,90)
     w=np.append(w,len(woy))
     hw = get_heat_waves_date(woy, date_matrix)
     prop = get_properties(date_matrix, temp_matrix, hw)
     properties_csv(prop)
+print(np.sum(w))
+#warm_days=np.array([])
+#number_event=np.array([])
+#number_days=np.array([])
+#min=np.array([])
+#year=np.array([])
+
+#woy = warm_days_wod_y(temp_matrix, 70,0,365)
+#hw = get_heat_waves_date(woy, date_matrix)
+#print(hw)
+#means=np.array([])
+#perc=percentile_d(temp_matrix,70,95)
+#for i in range(0, len(temp_matrix[70])):
+#    means=np.append(means,mean_temp_day(temp_matrix,70,i))
+#
+#print(len(perc))
+#print(len(means))
+#
+#
+#plt.scatter(date_matrix[70],temp_matrix[70],c='tab:blue',s=10,marker ='o')
+#plt.plot(date_matrix[70],means,c='tab:orange')
+#plt.plot(date_matrix[70],perc,c='tab:green')
+#for h in hw:
+#    for i in range(0,len(h)):
+#        plt.scatter(date_matrix[70][int(h[i][1])],temp_matrix[70][int(h[i][1])],c='r',s=10,marker='o')
+#plt.legend(['T ','media ','95° percentile','heatwaves'])
+#plt.xlabel('Date ')
+#plt.ylabel('Temperatura media giornaliera [K]')
+#plt.show()
+#
+#for k in range(9,71):
+#    woy = warm_days_wod_y(temp_matrix, k,0,365)
+#    hw = get_heat_waves_date(woy, date_matrix)
+#    #min=np.append(min,np.min(temp_matrix[k]))
+#    year=np.append(year,k+1950)
+#    #max=np.max(temp_matrix[k])
+    
+#a, b = np.polyfit(year, min, 1)
+#plt.scatter(year,min,c='tab:orange',s=20)
+#plt.plot(year, a*year+b)
+#plt.legend('TF')
+#plt.bar_label('slope='+str(a))
+#plt.xlabel('Anno')
+#plt.ylabel('Temperatura minima annua [K]')
+#plt.show()
+
+    #plt.scatter(k+1950,max,c='tab:orange',s=20)
+    #number_event=np.append(number_event,len(hw))
+    #for h in hw:
+    #    number_days=np.append(number_days,len(h))
+    
+    #prop = get_properties(date_matrix, temp_matrix, hw)
+    #properties_csv(prop)
+#plt.show()
+#ev=np.sum(number_event)
+#day=np.sum(number_days)
+#print(ev)
+#print(day)
+#print(len(warm_days))
+#print(np.sum(warm_days))
+
+
+
 
