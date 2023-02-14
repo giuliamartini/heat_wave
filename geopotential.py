@@ -19,7 +19,7 @@ def get_hw_days(dates, first_day, duration):
     indexes = []
     for i in range(0, len(begin)):
     
-        indexes.append(np.arange(begin[i], begin[i]+1+duration[i], 1))
+        indexes.append(np.arange(begin[i], begin[i]+duration[i], 1))
     return indexes
 
 
@@ -35,19 +35,19 @@ def distance(event_map1, event_map2):
 
 
 def window_days_int(dates,year, day):
-    if (day%90>=80):
-        return np.arange(year*90+day-10, year*90+90, 1)
-    if (day%90<=10):
-        return np.arange(year*90, year*90+day+11, 1)
+    if (day>=80):
+        return np.arange(year*90+70, year*90+90, 1)
+    if (day<=10):
+        return np.arange(year*90, year*90+21, 1)
     else:
         return np.arange(year*90+day-10, year*90+day+10, 1)
 
 
 def woy_int(year):
     if(year <= 4):
-        return np.arange(0, year+5, 1)
+        return np.arange(0, 9, 1)
     if(year >= 55):
-        return np.arange(year-5, 60, 1)  
+        return np.arange(51, 60, 1)  
     else:
         return np.arange(year-5, year+5, 1)
 
@@ -137,6 +137,22 @@ def min_distance(cluster1,cluster2):
     return minimum
 
  
+def min_corr(cluster1,cluster2):
+    arr_corr=np.array([])
+    for x in cluster1:
+        for y in cluster2:
+            arr_corr=np.append(arr_corr,r_coeff(x.geop_map,y.geop_map))
+    minimum=np.min(arr_corr)
+    return minimum
+
+
+def max_corr(cluster1,cluster2):
+    arr_corr=np.array([])
+    for x in cluster1:
+        for y in cluster2:
+            arr_corr=np.append(arr_corr,r_coeff(x.geop_map,y.geop_map))
+    maximum=np.max(arr_corr)
+    return maximum
 
 
 
