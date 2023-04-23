@@ -5,6 +5,8 @@ import cftime
 import csv
 from geopotential import strtodate,get_hw_days, maxim_distance, get_anomalies_map,min_distance,HeatWave
 
+#Inserire il path per il file netCDF4 con mappe di geopotenziale a 500 hPa
+path_geop= '/home/giulia/geopotential_m.nc'
 
 def algorithm(cluster_heat_waves):
 
@@ -27,7 +29,7 @@ def algorithm(cluster_heat_waves):
     return cluster_heat_waves
 
 
-fn = '/home/giulia/geopotential_m.nc'
+fn = path_geop
 ds = nc.Dataset(fn)
 time = ds.variables['time']
 dates = cftime.num2pydate(time[:], time.units, calendar='standard')
@@ -137,4 +139,5 @@ for j in range(0,len(cluster_heat_waves_anomalies)):
         for hw in cluster_heat_waves_anomalies[j]:        
             writer.writerow(hw.magnitudo)
     stream.close()
+
 
