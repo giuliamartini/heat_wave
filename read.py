@@ -11,7 +11,10 @@ import csv
 from utilities  import  mean_temp_day,percentile_d
 
 
-fn='/home/giulia/Documents/Documenti/Tesi/pc_TAS_daymean.nc'
+#inserire il path per il file netCDF4 di t2m media globale  
+path='/home/giulia/Documents/Documenti/Tesi/pc_TAS_daymean.nc'
+
+fn=path
 ds = nc.Dataset(fn)
 time = ds.variables['time']
 temp = np.array(ds.variables['t2m'][:])
@@ -23,7 +26,7 @@ dates = pd.to_datetime(dates)
 dates = np.array(list(map(lambda x: x.date(), dates)))
 months = np.array(list(map(lambda x: x.month, dates)))
 days = np.array(list(map(lambda x: x.day, dates)))
-
+years=np.array(list(map(lambda x: int(x.year), dates)))
 leap=[]
 for i in range(0,len(months)):
     if months[i]==2 and days[i]==29:
@@ -36,9 +39,9 @@ dates=np.delete(dates,index)
 temp=np.delete(temp,index)
 def warm_days_wod_y(temp_matrix, year, day_begin, day_end):
    
-    if day_begin < 0 or day_begin > 365:
+    if day_begin < 0 or day_begin > len(temp_matrix[0]):
         raise Exception("day_begin is out of range")
-    if day_end < 0 or day_end > 365:
+    if day_end < 0 or day_end > len(temp_matrix[0]):
         raise Exception("day_end is out of range")
 
     warm_days = np.array([])
@@ -171,7 +174,7 @@ def get_properties(date_matrix, temp_matrix, heat_waves):
 
 def properties_csv(prop):    
     
-    with open("JFM_90pct_"+str(1950+k)+".csv", "w") as stream:
+    with open("JFM_90pct_"+str(years[0]+k)+".csv", "w") as stream:
         #writer = csv.DictWriter(stream, delimiter=',',fieldnames=headerList)     
         writer = csv.writer(stream)
         writer.writerow(['firstday','Tmax','duration','magnitudo','intensity'])
@@ -193,6 +196,10 @@ for k in range(9,70):
     prop = get_properties(date_matrix, temp_matrix, hw)
     properties_csv(prop)
 print(np.sum(w))
+
+
+
+
 
 
 
