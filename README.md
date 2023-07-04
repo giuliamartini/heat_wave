@@ -1,35 +1,38 @@
 # heat_wave
 
-Questo programma ha lo scopo di identificare e classificare le ondate di calore tra i dati raccolti da ECMWF dall' 1 gennaio 1950 al 31 dicembre 2021 (?) nella regione Artica. E' stata creata una matrice 71x365 contentente le temperature medie di ogni giorno . Sono stati rimossi i giorni 29 febbraio dagli anni bisestili tramite la funzione "remove_leap_years" contenuta nel file "utilities.py" senza perdere di generalità (va aggiunto il ragionamento fatto per rimuovere i 29 febbraio) per creare la matrice di temperature. Per poter studiare la matrice di temperature e poter tenere traccia della datazione delle ondate di calore è stata creata una matrice di date di tipo datetime64.
+Questo programma ha lo scopo di identificare e classificare le ondate di calore tra i dati raccolti da ECMWF dall' 1 gennaio 1950 al 31 dicembre 2021 nella regione Artica. Il programma si compone di due componenti: la prima ha lo scopo di identificare gli eventi ondata di calore e la seconda quello di classificare tali eventi sulla base delle anomalie di altezza geopotenziale a 500 hPa. 
 
-In "utilities.py" state definite le funzioni :
+Per utilizzare il programma è necessario scaricare in formato netCDF4 i seguenti dati: 
+- Media dei valori di temperatura a 2m di un'intera sezione a nord di 75°N per ogni giornata considerata nello studio
+- Temperatura media a 2m di un'intera sezione a nord di 30°N
+- Altezza geopotenziale a 500 hPa di un'intera sezione a nord di 30°N
 
-window_days(temp_matrix, year, day): prende come argomenti la matrice di temperaure, un intero year compreso tra 0 e 71 (gli anni di durata dello studio) e un intero day compreso fra 0 e 364 e restituisce un np.array contenente le temperature medie di una finesra temporale di 20 giorni centrata nel giorno numero day dell'anno year. Sono state create condizioni al contorno per i 10 giorni di inizio e di fine dello studio per cui viene considerata una finestra temporale ristretta ( [0,d+10] e [d-10,365])
+IDENTIFICAZIONE DEGLI EVENTI:
 
-window_years(temp_matrix, year): prende come argomenti la matrice di temperature e un intero year. Restituisce una matrice 9x365 corrispondente a una finestra temporale di 9 anni centrata nell'anno year ([year-4,year+4]). Sono state valutate le condizioni al contorno per cui per gli 4 anni di confine con l'inizio e la fine dello studio la funzione restituisce finestre di tempo ristrette ([0,year+4], [year-4, 71])
+La parte di programma dedicata all'identificazione degli eventi è salvata con il nome read.py. All'inizio del file è presente una variabile di nome "path", dove andrà inserito il path del file netCDF4 contenente la media dei valori di temperatura a 2m (1 valore per giorno). 
 
-percentile(temp_matrix, year, p_val): prende come argomenti la matrice di temperature , l'intero year che corrisponde all'anno in cui centro la finestra temporale che voglio indagare, il numero float p_val che corrisponde al valore percentile. Divido ogni anno di una finestra temporale di 9 anni centrata in year in 19 finestre di giorni (wod = window of days) : 18 di queste di 20 giorni e una di 5 giorni . (posso calcolare il percentile per una finestra temporale centrata in ogni giorno ma rallenta molto il programma e non fornisce risultati più accurati, va approfondita la spiegazione). La funzione restituisce un np.array temperature corrispondenti al percentile (di valore p_val) calcolato sulle temperature della determinata finestra di giorni di ciascuno degli anni considerati. Ogni elemento dell' np.array corrisponde al valore percentile di una determinata finestra di giorni. L'np.array di ritorno ha quindi dimensione 19.
+esempio: 
 
-mean_temp(temp_matrix, year): prende come argomenti la matrice di temperature e un intero year corrispondente all'anno su cui verrà centrata la finestra di 9 anni considerata. Come la funzione percentle restituisce un np.array di dimensione 19 contenente la temperatura media per ciascuna delle 19 finestre di giorni contenute in ciascun anno sopra definite. La media è calcolata sui valori di temperatura di una determinata finestra di tempo per ciascun anno considerato.
+path='/home/giulia/Documents/Documenti/Tesi/pc_TAS_daymean.nc'
 
-mean_temp_wod(temp_matrix, year, wod): restituisce il valore di temperatura medio per una determinata finestra di giorni , wod è un intero compreso fra 0 e 19
+Il programma si occupa di spacchettare in numpy array i dati contenuti nel file .nc e di identificare le ondate di calore sulla base di una climatologia dipendente dal tempo che considera per ogni giorno una finestra di 20 giorni per 9 anni con centro sul giorno interessato. La soglia oltre al quale una giornata è da considerarsi una giornata calda è il 90° percentile calcolato sulla climatologia sopra definita. I criteri di persistenza considerati sono un minimo di 3 giornate calde consecutive per poter identificare un'ondata di calore.
 
-Nel file "read.py" sono state definite le funzioni necessarie per identificare le ondate di calore.
+Il programma salverà un file netCDF4 per ogni anno appartenente allo studio, è necessario inserire il nome che si intende dare al file nella parte di programma:
 
-warm_days_woy(temp_matrix, year): prende come argomento la matrice di temperature e un intero year. La funzione per l'anno corrispondente all'intero year calcola il valore di temperatura corrispondente al 95th percentile per ciascuna delle 19 finestre di giorni contenute nell'anno, prendendo come anni di riferimento la finestra temporale di 9 anni definita dalla funzione window_years(temp_matrix,year). In seguito restituisce un np.array contenente le posizioni nella matrice di temperatura che corrispondono ai giorni con temperatura superiore al 95th percentile della finestra temporale cui appartengono (quindi due indici corrispondenti alle righe e alle colonne della matrice) . All'np.array di indici posizionali è stato applicato il metodo numpy "np.reshape" in modo da avere l'anno (riga) in posizione [i][0] e il giorno (colonna) in posizione [i][1].
+with open("JFM_90pct_"+str(years[0]+k)+".csv", "w") as stream:
 
-warm_days_wod(temp_matrix, year, wod): prende in argomento la matrice di temperature, un intero year corrispondente all'anno , e un intero wod compreso fra 0 e 18 corrispondente alla specifica finestra di giorni contenuta in un anno. Utilizza la stessa logica di warm_days_woy(temp_matrix, year) ma restituisce una matrice di indici corrispondenti ai giorni con temperatura superiore al 95th percentile che appartengono alla determinata finestra di giorni per una finestra di 9 anni centrata in year.
+dove è stato considerato il nome JFM_90pct_ per intendere che il periodo studiato è quello invernale considerando una soglia a 90° percentile.
 
-get_values_matrix(matrix, indexes): prende come argomenti la matrice di temperature e un array di indici posizionali, restituisce i valori della matrice di temperature corrispondenti agli indici passati come argomenti
+E' possibile selezionare il periodo dell'anno specifico o il periodo di anni di cui si intende identificare gli eventi ondate di calore. Al termine del file read.py si trova un for loop in cui inserire i vincoli temporali, esempio: 
 
-get_heat_waves(events, date_matrix): prende come argomento la matrice di indici e la matrice di date analoga a quella di temperature. Restituisce una matrice di matrici di indici . Per matrice di indici si intende un np.array nx2 in cui la posizione [i][0] corrisponde alla riga e [i][1] corrisponde alla colonna della matrice che contiene i valori (per ora di temperatura o la data). Ogni matrice di indici corrisponde a un'ondata di calore, quindi con minimo 3 coppie di indici poichè il fenomeno estremo può essere considerato ondata di calore solo se la sua durata supera o eguaglia i 3 giorni. La funzione dunque isola i giorni con temperature oltre il 95th percentile consecutivi.
+for k in range(0,70):
+    woy = warm_days_wod_y(temp_matrix, k,0,90)
+    w=np.append(w,len(woy))
 
-values_hw(temp_matrix, heat_waves): prende come argomento la matrice di temperature e una matrice di matrici di indici (heat_waves) . Restituisce una list di list di valori di temperature. La dimensione della list di list è il numero di ondate di calore occorse in 9 anni (se viene passato a get_heat_waves il risultato di warm_days_woy) oppure le ondate di calore occorse in una certa finestra di tempo per la durata di 9 anni (se viene passato a get_heat_waves il risultato di warm_days_wod).
+la funzione warm_days_wod_y() prende come argomenti: temp_matrix = la matrice di temperatura che contiene i valori di temperatura media di ogni giorno dell'anno per tutti gli anni considerati nello studio, k = l'anno di riferimento ( il range di anni di interesse è selezionato nel range(:,:) nella definizione del for loop), day_begin = giorno di inizio del periodo dell'anno di interesse, day_end = giorno di fine del periodo di interesse. Lo 0 corrisponde al 1 Gennaio di ogni anno ( ad esempio 0, 90 indica il periodo January- February- March). 
 
-get_properties(temp_matrix, events): viene passato come argomento la matrice di temperature (non la matrice di ondate di calore perchè serve ancora l'indice di posizione per poter calcolare la temperatura media sui 9 anni della finestra di giorni centrata nel giorno estremo per poter calcolare la magnitudo della ondata di calore) e l'array di matrici di indici corrispondenti ai giorni con temperatura superiore al 95tj percentile. La funzione restituisce una list di list contenenti le proprietà delle ondate di calore . In particolare per l'ondata di calore i-esima si ha rispettivamente nelle posizioni: [i][0]: temperatura massima raggiunta durante l'ondata di calore [i][1]: durata in giorni [i][2]: magnitudo [i][3]: intensità (definita come magnitudo*durata)
+CLASSIFICAZIONE DEGLI EVENTI:
 
-Nel file "hw.py" è stata definita un inizio di classe HeatWave. Gli oggetti Heat_wave sono inizializzati con un array di temperature corrispondenti alle temperature dei giorni forniti dalla funzione get_heat_waves, un array di proprietà definite da get_properties, un array di date (l'array di date vedere se è utile o se addirittura continuare a tenere l'array di indici così si hanno le posizioni dei giorni che formano l'ondata di calore sia sulla matrice di temperature che su quella di date ma da capire se continuare a prendere come argomento la matrice di temperature non rallenta il programma). L'idea è di creare dei metodi per classificare le ondate di calore nelle varie categorie.
 
-Nel file "clustering.py" per il momento c'è solo la lettura dei dati e la definizione della matrice di temperature e di date , l'idea è sviluppare l'algoritmo a cui verranno passati oggetti di tipo HeatWaves.
 
 Python 100.0%
